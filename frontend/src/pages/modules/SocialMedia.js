@@ -40,7 +40,6 @@ export default function SocialMedia() {
     }
   }
 
-  // 🚀 REAL MULTI-PLATFORM POST
   async function postNow() {
     if (!post || selectedPlatforms.length === 0) {
       alert("Enter post and select platform ❌");
@@ -50,7 +49,6 @@ export default function SocialMedia() {
     try {
       setLoading(true);
 
-      // 🔗 Open selected platforms
       if (selectedPlatforms.includes("Twitter 🐦")) {
         window.open(
           `https://twitter.com/intent/tweet?text=${encodeURIComponent(post)}`,
@@ -76,7 +74,6 @@ export default function SocialMedia() {
         alert("⚠️ Instagram does not support direct posting from web.");
       }
 
-      // OPTIONAL: Save to backend
       await fetch(`${API}/post-social`, {
         method: "POST",
         headers: {
@@ -87,7 +84,6 @@ export default function SocialMedia() {
         }),
       });
 
-      // Save locally
       const newPost = {
         text: post,
         platforms: selectedPlatforms,
@@ -108,7 +104,6 @@ export default function SocialMedia() {
     }
   }
 
-  // 📅 Schedule (demo)
   function schedulePost() {
     if (!post || selectedPlatforms.length === 0) return;
 
@@ -140,19 +135,21 @@ export default function SocialMedia() {
       </h1>
 
       {/* 🌐 Platforms */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Select Platforms</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Select Platforms
+        </h2>
 
         <div className="grid grid-cols-4 gap-4">
           {platforms.map((p, i) => (
             <div
               key={i}
               onClick={() => togglePlatform(p)}
-              className={`p-4 rounded text-center cursor-pointer
+              className={`p-4 rounded text-center cursor-pointer transition duration-300
                 ${
                   selectedPlatforms.includes(p)
-                    ? "bg-indigo-500 text-white"
-                    : "bg-gray-200"
+                    ? "bg-indigo-500 text-white shadow-lg scale-105"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
             >
               {p}
@@ -162,42 +159,44 @@ export default function SocialMedia() {
       </div>
 
       {/* ✍️ Create Post */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Create Post</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Create Post
+        </h2>
 
         <textarea
           value={post}
           onChange={(e) => setPost(e.target.value)}
           placeholder="Write your post..."
-          className="border w-full p-3 rounded mb-3"
+          className="border w-full p-3 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
         <input
           type="datetime-local"
           value={dateTime}
           onChange={(e) => setDateTime(e.target.value)}
-          className="border p-2 rounded mb-3 w-full"
+          className="border p-2 rounded mb-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
         <div className="flex gap-3">
           <button
             onClick={postNow}
             disabled={loading}
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition duration-300"
           >
             {loading ? "Posting..." : "Post Now 🚀"}
           </button>
 
           <button
             onClick={schedulePost}
-            className="bg-indigo-500 text-white px-4 py-2 rounded"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded transition duration-300"
           >
             Schedule
           </button>
 
           <button
             onClick={generateCaption}
-            className="bg-purple-500 text-white px-4 py-2 rounded"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition duration-300"
           >
             AI Caption
           </button>
@@ -205,12 +204,17 @@ export default function SocialMedia() {
       </div>
 
       {/* 📜 Post History */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Post History</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Post History
+        </h2>
 
         <ul className="space-y-3">
           {posts.map((p, i) => (
-            <li key={i} className="border p-4 rounded">
+            <li
+              key={i}
+              className="border p-4 rounded hover:bg-gray-50 transition"
+            >
               <p className="font-semibold">{p.text}</p>
 
               <p className="text-sm text-gray-500">
@@ -226,8 +230,8 @@ export default function SocialMedia() {
       </div>
 
       {/* 📊 Analytics */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
           Engagement Analytics 📊
         </h2>
 

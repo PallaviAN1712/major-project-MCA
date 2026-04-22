@@ -6,17 +6,14 @@ export default function Attendance() {
   const [newTime, setNewTime] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Backend URL (DO NOT CHANGE)
   const API = "http://127.0.0.1:8000";
 
-  // 🔹 Status logic
   function getStatus(time) {
     if (time < "09:00") return "Early";
     if (time === "09:00") return "On Time";
     return "Late";
   }
 
-  // 🔹 Check backend before fetching
   async function checkBackend() {
     try {
       const res = await fetch(API);
@@ -27,7 +24,6 @@ export default function Attendance() {
     }
   }
 
-  // 🔹 Fetch employees
   async function fetchEmployees() {
     try {
       setLoading(true);
@@ -39,7 +35,6 @@ export default function Attendance() {
       }
 
       const res = await fetch(`${API}/employees`);
-
       if (!res.ok) throw new Error("Server error");
 
       const data = await res.json();
@@ -57,7 +52,6 @@ export default function Attendance() {
     fetchEmployees();
   }, []);
 
-  // 🔹 Add employee
   async function addEmployee() {
     if (!newName || !newTime) {
       alert("Enter all fields");
@@ -83,7 +77,6 @@ export default function Attendance() {
 
       setNewName("");
       setNewTime("");
-
       fetchEmployees();
 
     } catch (err) {
@@ -92,7 +85,6 @@ export default function Attendance() {
     }
   }
 
-  // 🔹 Delete employee
   async function deleteEmployee(index) {
     try {
       const res = await fetch(`${API}/employees/${index}`, {
@@ -100,7 +92,6 @@ export default function Attendance() {
       });
 
       if (!res.ok) throw new Error();
-
       fetchEmployees();
 
     } catch (err) {
@@ -116,27 +107,29 @@ export default function Attendance() {
       </h1>
 
       {/* ➕ Add Employee */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Add Employee</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Add Employee
+        </h2>
 
         <div className="flex gap-3">
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Employee Name"
-            className="border p-2 rounded w-full"
+            className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
           <input
             type="time"
             value={newTime}
             onChange={(e) => setNewTime(e.target.value)}
-            className="border p-2 rounded"
+            className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
           <button
             onClick={addEmployee}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded transition duration-300"
           >
             Add
           </button>
@@ -144,15 +137,15 @@ export default function Attendance() {
       </div>
 
       {/* 📋 Table */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
           Employee Attendance
         </h2>
 
         {loading ? (
           <p>Loading...</p>
         ) : (
-          <table className="w-full border">
+          <table className="w-full border rounded overflow-hidden">
             <thead>
               <tr className="bg-gray-100">
                 <th className="p-2">Name</th>
@@ -164,7 +157,7 @@ export default function Attendance() {
 
             <tbody>
               {employees.map((emp, index) => (
-                <tr key={index} className="border-t">
+                <tr key={index} className="border-t hover:bg-gray-50 transition">
                   <td className="p-2">{emp.name}</td>
                   <td className="p-2">{emp.time}</td>
 
@@ -185,7 +178,7 @@ export default function Attendance() {
                   <td className="p-2">
                     <button
                       onClick={() => deleteEmployee(index)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition"
                     >
                       Delete
                     </button>
@@ -195,7 +188,7 @@ export default function Attendance() {
 
               {employees.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="text-center p-3">
+                  <td colSpan="4" className="text-center p-3 text-gray-500">
                     No data
                   </td>
                 </tr>

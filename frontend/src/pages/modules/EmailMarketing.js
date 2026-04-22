@@ -23,11 +23,9 @@ export default function EmailMarketing() {
     { name: "Clicked", value: Math.floor(emails.length * 0.4) },
   ];
 
-  // ✅ Email validation
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // ➕ Add Email
   const addEmail = () => {
     const email = prompt("Enter email");
 
@@ -44,12 +42,10 @@ export default function EmailMarketing() {
     setEmailList((prev) => [...prev, email]);
   };
 
-  // ❌ Remove email
   const removeEmail = (index) => {
     setEmailList((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 🤖 AI Email
   const generateEmail = () => {
     setSubject("🔥 Special Offer Just for You!");
     setMessage(
@@ -57,7 +53,6 @@ export default function EmailMarketing() {
     );
   };
 
-  // 📥 Fetch emails (useCallback fix)
   const fetchEmails = useCallback(async () => {
     try {
       const res = await fetch(`${API}/emails`);
@@ -72,7 +67,6 @@ export default function EmailMarketing() {
     fetchEmails();
   }, [fetchEmails]);
 
-  // 🚀 SEND EMAIL
   const sendEmail = async () => {
     if (!subject.trim() || !message.trim() || emailList.length === 0) {
       alert("Fill all fields ❌");
@@ -82,7 +76,6 @@ export default function EmailMarketing() {
     try {
       setLoading(true);
 
-      // ⏱️ Timeout protection
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -110,7 +103,6 @@ export default function EmailMarketing() {
 
       alert("✅ " + data.message);
 
-      // Reset form
       setSubject("");
       setMessage("");
       setEmailList([]);
@@ -121,7 +113,7 @@ export default function EmailMarketing() {
       console.error(err);
 
       if (err.name === "AbortError") {
-        alert("⏱️ Request timed out (Backend slow or blocked)");
+        alert("⏱️ Request timed out");
       } else {
         alert("❌ Backend not connected");
       }
@@ -138,35 +130,37 @@ export default function EmailMarketing() {
       </h1>
 
       {/* ✉️ Compose */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Compose Email</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Compose Email
+        </h2>
 
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Subject"
-          className="border p-2 w-full mb-3 rounded"
+          className="border p-2 w-full mb-3 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Write your email..."
-          className="border p-3 w-full rounded mb-3"
+          className="border p-3 w-full rounded mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
         <div className="flex gap-3">
           <button
             onClick={sendEmail}
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded transition duration-300"
           >
             {loading ? "Sending..." : "Send Email"}
           </button>
 
           <button
             onClick={generateEmail}
-            className="bg-purple-500 text-white px-4 py-2 rounded"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition duration-300"
           >
             AI Generate
           </button>
@@ -174,12 +168,14 @@ export default function EmailMarketing() {
       </div>
 
       {/* 👥 Email List */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Email List</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Email List
+        </h2>
 
         <button
           onClick={addEmail}
-          className="bg-green-500 text-white px-3 py-1 rounded"
+          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded transition"
         >
           Add Email
         </button>
@@ -188,7 +184,7 @@ export default function EmailMarketing() {
           {emailList.map((e, i) => (
             <li
               key={i}
-              className="border p-2 rounded flex justify-between items-center"
+              className="border p-2 rounded flex justify-between items-center hover:bg-gray-50 transition"
             >
               {e}
               <button
@@ -203,8 +199,10 @@ export default function EmailMarketing() {
       </div>
 
       {/* 📥 Inbox */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Inbox</h2>
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Inbox
+        </h2>
 
         {emails.length === 0 ? (
           <p className="text-gray-500">No emails yet</p>
@@ -213,12 +211,17 @@ export default function EmailMarketing() {
             {emails.map((mail, index) => (
               <li
                 key={index}
-                className="p-3 border rounded flex justify-between"
+                className="p-3 border rounded flex justify-between hover:bg-gray-50 transition"
               >
                 <div>
                   <p className="font-semibold">{mail.subject}</p>
+
                   <p className="text-sm text-gray-500">
-                    {mail.to?.join(", ") || "Unknown"}
+                    {typeof mail.to === "string"
+                      ? mail.to
+                      : Array.isArray(mail.to)
+                      ? mail.to.join(", ")
+                      : "Unknown"}
                   </p>
                 </div>
 
@@ -232,8 +235,8 @@ export default function EmailMarketing() {
       </div>
 
       {/* 📊 Analytics */}
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition duration-300 border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
           Campaign Analytics 📊
         </h2>
 

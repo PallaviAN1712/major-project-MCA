@@ -5,6 +5,54 @@ from typing import List
 import smtplib
 from email.mime.text import MIMEText
 
+# ✅ DATABASE IMPORTS
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+# =========================
+# 📌 DATABASE SETUP
+# =========================
+
+DATABASE_URL = "sqlite:///./app.db"
+
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine)
+
+Base = declarative_base()
+
+# =========================
+# 📌 TABLES
+# =========================
+
+class EmployeeModel(Base):
+    __tablename__ = "employees"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    time = Column(String)
+    status = Column(String)
+
+
+class EmailModel(Base):
+    __tablename__ = "emails"
+
+    id = Column(Integer, primary_key=True, index=True)
+    to = Column(String)
+    subject = Column(String)
+    message = Column(String)
+
+
+class SocialModel(Base):
+    __tablename__ = "social"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(String)
+
+# ✅ CREATE DATABASE
+Base.metadata.create_all(bind=engine)
+
+# =========================
+
 app = FastAPI()
 
 # ✅ CORS
@@ -25,30 +73,53 @@ class Employee(BaseModel):
     time: str
     status: str
 
-employees_db = []
 
 @app.get("/")
 def home():
     return {"message": "Backend running 🚀"}
 
+
 @app.get("/employees")
 def get_employees():
-    return employees_db
+    db = SessionLocal()
+    data = db.query(EmployeeModel).all()
+    db.close()
+    return data
+
 
 @app.post("/employees")
 def add_employee(emp: Employee):
-    employees_db.append(emp)
+    db = SessionLocal()
+
+    new_emp = EmployeeModel(
+        name=emp.name,
+        time=emp.time,
+        status=emp.status
+    )
+
+    db.add(new_emp)
+    db.commit()
+    db.close()
+
     return {"message": "Employee added"}
 
-@app.delete("/employees/{index}")
-def delete_employee(index: int):
-    if index < len(employees_db):
-        employees_db.pop(index)
+
+@app.delete("/employees/{id}")
+def delete_employee(id: int):
+    db = SessionLocal()
+    emp = db.query(EmployeeModel).filter(EmployeeModel.id == id).first()
+
+    if emp:
+        db.delete(emp)
+        db.commit()
+        db.close()
         return {"message": "Deleted"}
-    return {"error": "Invalid index"}
+
+    db.close()
+    return {"error": "Invalid id"}
 
 # =========================
-# 📌 EMAIL MODULE (STABLE)
+# 📌 EMAIL MODULE (STABLE + DB)
 # =========================
 
 class Email(BaseModel):
@@ -56,36 +127,28 @@ class Email(BaseModel):
     subject: str
     message: str
 
-emails_db = []
 
-# 🔐 YOUR EMAIL CONFIG
 SENDER_EMAIL = "n24gowda17@gmail.com"
-SENDER_PASSWORD = "hxclpebnbkbrvays"   # no spaces
+SENDER_PASSWORD = "hxclpebnbkbrvays"
+
 
 @app.post("/send-email")
 def send_email(email: Email):
     server = None
 
     try:
-        print("\n📤 Connecting to Gmail SMTP...")
-
-        # ✅ Create connection
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.ehlo()
         server.starttls()
         server.ehlo()
 
-        print("🔐 Logging in...")
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
 
         sent_count = 0
         failed = []
 
-        # ✅ Send to all emails
         for receiver in email.to:
             try:
-                print(f"➡ Sending to: {receiver}")
-
                 msg = MIMEText(email.message)
                 msg["Subject"] = email.subject
                 msg["From"] = f"SaaS App <{SENDER_EMAIL}>"
@@ -94,58 +157,60 @@ def send_email(email: Email):
                 server.sendmail(SENDER_EMAIL, receiver, msg.as_string())
                 sent_count += 1
 
-                print(f"✅ Sent to {receiver}")
-
             except Exception as inner_error:
-                print(f"❌ Failed for {receiver}: {inner_error}")
                 failed.append(receiver)
 
-        emails_db.append(email)
+        # ✅ SAVE TO DATABASE
+        db = SessionLocal()
+        data = EmailModel(
+            to=",".join(email.to),
+            subject=email.subject,
+            message=email.message
+        )
+        db.add(data)
+        db.commit()
+        db.close()
 
         return {
             "message": f"{sent_count} email(s) sent successfully 🚀",
-            "failed": failed,
-            "total_sent": len(emails_db)
+            "failed": failed
         }
 
     except Exception as e:
-        print("❌ ERROR:", e)
-
-        return {
-            "error": str(e),
-            "message": "Email failed ❌"
-        }
+        return {"error": str(e)}
 
     finally:
-        try:
-            if server:
-                server.quit()
-        except:
-            pass
+        if server:
+            server.quit()
 
-# 📥 EMAIL HISTORY
+
 @app.get("/emails")
 def get_emails():
-    return emails_db
+    db = SessionLocal()
+    data = db.query(EmailModel).all()
+    db.close()
+    return data
 
 # =========================
-# 📌 SOCIAL MEDIA MODULE
+# 📌 SOCIAL MEDIA MODULE (DB)
 # =========================
 
 class SocialPost(BaseModel):
     content: str
 
-social_db = []
 
 @app.post("/post-social")
 def post_social(post: SocialPost):
     try:
-        print(f"📢 Posting: {post.content}")
+        db = SessionLocal()
 
-        social_db.append(post.content)
+        new_post = SocialModel(content=post.content)
+        db.add(new_post)
+        db.commit()
+        db.close()
 
         return {
-            "message": "Post ready to share 🚀",
+            "message": "Post saved permanently 🚀",
             "content": post.content,
             "share_url": f"https://twitter.com/intent/tweet?text={post.content}"
         }
@@ -153,6 +218,10 @@ def post_social(post: SocialPost):
     except Exception as e:
         return {"error": str(e)}
 
+
 @app.get("/social-posts")
 def get_social_posts():
-    return social_db
+    db = SessionLocal()
+    data = db.query(SocialModel).all()
+    db.close()
+    return data
